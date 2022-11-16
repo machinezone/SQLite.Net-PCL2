@@ -28,12 +28,22 @@ namespace SQLite.Net2.Tests
 
 		public class TestColumnInformationProvider : IColumnInformationProvider
 		{
-			public string GetColumnName(PropertyInfo p)
+			public string GetColumnName(MemberInfo p)
 			{
 				return p.Name;
 			}
 
-			public bool IsIgnored(PropertyInfo p)
+			public Type GetMemberType(MemberInfo m)
+			{
+				throw new NotImplementedException();
+			}
+
+			public object GetValue(MemberInfo m, object obj)
+			{
+				throw new NotImplementedException();
+			}
+
+			public bool IsIgnored(MemberInfo p)
 			{
 				return p.IsDefined(typeof (TestIgnoreAttribute), true);
 			}
@@ -55,11 +65,11 @@ namespace SQLite.Net2.Tests
 			{
 				return false;
 			}
-			public int? MaxStringLength(PropertyInfo p)
+			public int? MaxStringLength(MemberInfo p)
 			{
 				return null;
 			}
-			public object GetDefaultValue(PropertyInfo p)
+			public object GetDefaultValue(MemberInfo p)
 			{
 				return null;
 			}

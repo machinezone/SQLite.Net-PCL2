@@ -36,8 +36,11 @@ namespace SQLite.Net2
         private Column[] _insertColumns, _insertOrReplaceColumns;
 
 
-        public TableMapping(Type type, IEnumerable<PropertyInfo> properties, CreateFlags createFlags = CreateFlags.None,
-            IColumnInformationProvider infoProvider = null)
+        public TableMapping(
+            Type type,
+            IEnumerable<MemberInfo> properties,
+            CreateFlags createFlags = CreateFlags.None,
+            IColumnInformationProvider? infoProvider = null)
         {
             infoProvider ??= new DefaultColumnInformationProvider();
 
@@ -53,23 +56,35 @@ namespace SQLite.Net2
             foreach (var p in props)
             {
                 var ignore = infoProvider.IsIgnored(p);
+                if (ignore) continue;
 
-                if (!p.CanWrite || ignore) continue;
-
+                var memberType = infoProvider.GetMemberType(p);
                 // Check if this is a ValueTuple<...>
-                if (p.PropertyType.GetInterface(nameof(ITuple)) != null && p.PropertyType.IsValueType)
+                if (memberType.GetInterface(nameof(ITuple)) != null && memberType.IsValueType)
                 {
                     // If it is, create a column per member of the value tuple.
                     var names = p.GetCustomAttribute<TupleElementNamesAttribute>();
-                    var args = p.PropertyType.GetGenericArguments();
+                    var args = memberType.GetGenericArguments();
                     for (var i = 0; i < args.Length; ++i)
                     {
-                        cols.Add(new Column(p, createFlags, i, args[i], names?.TransformNames[i] ?? $"Item{i + 1}"));
+                        cols.Add(new Column(
+                            p,
+                            createFlags,
+                            i,
+                            args[i],
+                            names?.TransformNames[i] ?? $"Item{i + 1}",
+                            infoProvider));
                     }
                 }
                 else
                 {
-                    cols.Add(new Column(p, createFlags));
+                    cols.Add(new Column(
+                        p,
+                        createFlags,
+                        -1,
+                        null,
+                        null,
+                        infoProvider));
                 }
             }
 
@@ -145,28 +160,29 @@ namespace SQLite.Net2
 
         public class Column
         {
-            private readonly PropertyInfo _prop;
-
+            private readonly MemberInfo _prop;
+            private readonly IColumnInformationProvider _infoProvider;
+            
             public Column()
             {
             }
 
             public Column(
-                PropertyInfo prop,
-                CreateFlags createFlags = CreateFlags.None,
-                int tupleElement = -1,
-                Type? tupleElementType = null,
-                string? tupleElementName = null,
-                IColumnInformationProvider infoProvider = null)
+                MemberInfo prop,
+                CreateFlags createFlags,
+                int tupleElement,
+                Type? tupleElementType,
+                string? tupleElementName,
+                IColumnInformationProvider? infoProvider)
             {
-                infoProvider ??= new DefaultColumnInformationProvider();
+                _infoProvider = infoProvider ?? new DefaultColumnInformationProvider();
 
                 _prop = prop;
                 Name = tupleElementName == null
-                    ? infoProvider.GetColumnName(prop)
-                    : $"{infoProvider.GetColumnName(prop)}_{tupleElementName}";
+                    ? _infoProvider.GetColumnName(prop)
+                    : $"{_infoProvider.GetColumnName(prop)}_{tupleElementName}";
 
-                var columnType = tupleElementType ?? prop.PropertyType;
+                var columnType = tupleElementType ?? _infoProvider.GetMemberType(prop);
                 //If this type is Nullable<T> then Nullable.GetUnderlyingType returns the T, otherwise it returns null, so get the actual type instead
                 ColumnType = Nullable.GetUnderlyingType(columnType) ?? columnType;
                 Collation = Orm.Collation(prop);
@@ -219,7 +235,7 @@ namespace SQLite.Net2
             /// <param name="val"></param>
             public void SetValue(object obj, object val)
             {
-                var propType = _prop.PropertyType;
+                var propType = _infoProvider.GetMemberType(_prop);
                 var typeInfo = propType.GetTypeInfo();
                 object valueToSet;
 
@@ -250,17 +266,25 @@ namespace SQLite.Net2
                 // on the property.
                 if (TupleElement != -1)
                 {
-                    var tupleObj = (ITuple)_prop.GetValue(obj);
+                    var tupleObj = (ITuple)_infoProvider.GetValue(_prop, obj);
                     var args = new object[tupleObj.Length];
                     for (var i = 0; i < tupleObj.Length; ++i)
                     {
                         args[i] = i == TupleElement ? valueToSet : tupleObj[i];
                     }
 
-                    valueToSet = Activator.CreateInstance(_prop.PropertyType, args);
+                    valueToSet = Activator.CreateInstance(_infoProvider.GetMemberType(_prop), args);
                 }
 
-                _prop.SetValue(obj, valueToSet);
+                switch (_prop)
+                {
+                    case PropertyInfo pi:
+                        pi.SetValue(obj, valueToSet);
+                        break;
+                    case FieldInfo fi:
+                        fi.SetValue(obj, valueToSet);
+                        break;
+                }
             }
 
             private object AsEnumValue(object obj, Type type, object? value)
@@ -271,7 +295,7 @@ namespace SQLite.Net2
 
             public object GetValue(object obj)
             {
-                var result = _prop.GetValue(obj, null);
+                var result = _infoProvider.GetValue(_prop, obj);
                 
                 // If we're a value tuple then we need to get the nested value in the tuple.
                 if (TupleElement != -1 && result is ITuple tuple)
