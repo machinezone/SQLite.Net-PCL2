@@ -8,8 +8,20 @@ namespace SQLite.Net2.Tests
         public int id;
 
         public string name;
+
+        [Ignore]
+        public int shouldNotBeSet0 = -3;
+        private int shouldNotBeSet1 = -1;
+        protected internal int shouldNotBeSet2 = -2;
         
         public string Role { get; set; }
+
+        public void AssertNotSet()
+        {
+            Assert.That(shouldNotBeSet0, Is.EqualTo(-3));
+            Assert.That(shouldNotBeSet1, Is.EqualTo(-1));
+            Assert.That(shouldNotBeSet2, Is.EqualTo(-2));
+        }
     }
     
     [TestFixture]
@@ -43,9 +55,11 @@ namespace SQLite.Net2.Tests
                 },
             });
 
-            var model = db.Table<FieldTestModel>().Where(x => x.name == "hello").First();
+            var model = db.Table<FieldTestModel>().First(x => x.name == "hello");
             Assert.That(model.id, Is.Not.EqualTo(-1));
             Assert.That(model.Role, Is.EqualTo("chef"));
+            
+            model.AssertNotSet();
         }
     }
 }
