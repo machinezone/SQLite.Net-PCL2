@@ -48,7 +48,7 @@ namespace SQLite.Net2.Tests
             Assert.That(entry.Id, Is.EqualTo(1));
             Assert.That(entry.Position, Is.EqualTo((3, 4)));
             Assert.That(entry.ShouldBeSet, Is.EqualTo(2));
-            Assert.That(entry.ShouldNotBeSet, Is.Not.EqualTo(3));
+            Assert.That(entry.ShouldNotBeSet, Is.EqualTo(0));
         }
     }
 }
