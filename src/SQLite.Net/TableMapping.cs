@@ -24,6 +24,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -67,12 +68,18 @@ namespace SQLite.Net2
                     var args = memberType.GetGenericArguments();
                     for (var i = 0; i < args.Length; ++i)
                     {
+                        var tupleElementType = args[i];
+                        if (tupleElementType.GetInterface(nameof(ITuple)) != null)
+                        {
+                            throw new NotSupportedException("Nested tuple types are not supported.");
+                        }
+                        
                         cols.Add(new Column(
                             p,
                             createFlags,
                             infoProvider,
                             i,
-                            args[i],
+                            tupleElementType,
                             names?.TransformNames[i] ?? $"Item{i + 1}"));
                     }
                 }

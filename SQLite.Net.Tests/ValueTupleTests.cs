@@ -17,6 +17,11 @@ namespace SQLite.Net2.Tests
         
         public bool HasReadEula { get; set; }
     }
+
+    public class BadTupleModel
+    {
+        public (int userId, (string firstName, string lastName)) key;
+    }
     
     [TestFixture]
     public class ValueTupleTests : BaseTest
@@ -38,6 +43,14 @@ namespace SQLite.Net2.Tests
             Assert.That(mapping2.Columns[2].Name, Is.EqualTo($"{nameof(TestModelWithValueTuple.HasReadEula)}"));
         }
 
+        [Test]
+        public void CannotCreateTablesWithNestedTuples()
+        {
+            var db = new SQLiteConnection(TestPath.CreateTemporaryDatabase());
+            Assert.Throws<NotSupportedException>(() => db.GetMapping<BadTupleModel>());
+            Assert.Throws<NotSupportedException >(() => db.CreateTable<BadTupleModel>());
+        }
+        
         [Test]
         public void CanOperateOnSingleLevelValueTuples()
         {
