@@ -324,7 +324,7 @@ namespace SQLite.Net2
             return Connection.CreateCommand(cmdText.ToString(), args.ToArray());
         }
 
-        private static bool ExpressionIsTupleAccess(MemberExpression expr)
+        private static bool ExpressionHasParameterRoot(MemberExpression expr)
         {
             while (expr.Expression != null)
             {
@@ -506,20 +506,26 @@ namespace SQLite.Net2
                     };
                 }
                 
-                if (mem.Expression != null && ExpressionIsTupleAccess(mem))
+                if (mem.Expression != null && ExpressionHasParameterRoot(mem))
                 {
-                    // This only supports a single level of nesting. That is
-                    // x => x.Key.item is allowed
+                    // This only supports a single level of nesting. That is  x => x.Key.item is allowed
                     // but x => x.Key.item.value is not allowed.
                     
+                    // Given x => x.A.B this gets A
                     var parentProperty = (MemberExpression)mem.Expression;
                     var memberName = mem.Member.Name;
+                    
+                    // if A is a ValueTuple with element names, this will retrieve the names for use in determining the
+                    // column names.
                     var names = parentProperty.Member.GetCustomAttribute<TupleElementNamesAttribute>();
                     if (names != null)
                     {
                         var index = int.Parse(memberName.Substring(4)) - 1;
                         memberName = names.TransformNames[index];
                     }
+                    
+                    // Compose the parent name (A) with the child name to get the column name.
+                    // A_B
                     var name = parentProperty.Member.Name + "_" + memberName;
                     return new CompileResult
                     {
