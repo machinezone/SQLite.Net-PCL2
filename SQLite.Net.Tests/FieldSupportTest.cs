@@ -8,6 +8,8 @@ namespace SQLite.Net2.Tests
         public int id;
 
         public string name;
+        
+        public string Role { get; set; }
     }
     
     [TestFixture]
@@ -19,7 +21,7 @@ namespace SQLite.Net2.Tests
             var db = new SQLiteConnection(TestPath.CreateTemporaryDatabase());
             var mapping = db.GetMapping<FieldTestModel>();
             
-            Assert.That(mapping.Columns.Length, Is.EqualTo(2));
+            Assert.That(mapping.Columns.Length, Is.EqualTo(3));
             Assert.That(mapping.Columns[0].Name, Is.EqualTo(nameof(FieldTestModel.id)));
             Assert.That(mapping.Columns[1].Name, Is.EqualTo(nameof(FieldTestModel.name)));
 
@@ -30,17 +32,20 @@ namespace SQLite.Net2.Tests
                 new FieldTestModel
                 {
                     id = -1,
-                    name = "hello"
+                    name = "hello",
+                    Role = "chef"
                 },
                 new FieldTestModel
                 {
                     id = -1,
-                    name = "world"
+                    name = "world",
+                    Role = "waiter"
                 },
             });
 
             var model = db.Table<FieldTestModel>().Where(x => x.name == "hello").First();
             Assert.That(model.id, Is.Not.EqualTo(-1));
+            Assert.That(model.Role, Is.EqualTo("chef"));
         }
     }
 }
