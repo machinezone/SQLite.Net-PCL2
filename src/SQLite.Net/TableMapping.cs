@@ -70,10 +70,10 @@ namespace SQLite.Net2
                         cols.Add(new Column(
                             p,
                             createFlags,
+                            infoProvider,
                             i,
                             args[i],
-                            names?.TransformNames[i] ?? $"Item{i + 1}",
-                            infoProvider));
+                            names?.TransformNames[i] ?? $"Item{i + 1}"));
                     }
                 }
                 else
@@ -81,9 +81,6 @@ namespace SQLite.Net2
                     cols.Add(new Column(
                         p,
                         createFlags,
-                        -1,
-                        null,
-                        null,
                         infoProvider));
                 }
             }
@@ -170,10 +167,10 @@ namespace SQLite.Net2
             public Column(
                 MemberInfo prop,
                 CreateFlags createFlags,
-                int tupleElement,
-                Type? tupleElementType,
-                string? tupleElementName,
-                IColumnInformationProvider? infoProvider)
+                IColumnInformationProvider? infoProvider,
+                int tupleElement = -1,
+                Type? tupleElementType = null,
+                string? tupleElementName = null)
             {
                 _infoProvider = infoProvider ?? new DefaultColumnInformationProvider();
 
