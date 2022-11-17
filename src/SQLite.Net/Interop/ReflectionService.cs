@@ -29,6 +29,10 @@ namespace SQLite.Net2
 {
     public static class ReflectionService
     {
+        /// <summary>
+        /// Returns the set of public non-static non-initonly fields followed by the public non-static properties with
+        /// public get and set methods.
+        /// </summary>
         public static IEnumerable<MemberInfo> GetPublicInstanceProperties(Type mappedType)
         {
             var properties = mappedType.GetTypeInfo().GetRuntimeProperties()

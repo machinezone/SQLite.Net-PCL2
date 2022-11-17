@@ -1,3 +1,4 @@
+using System.Linq;
 using NUnit.Framework;
 
 namespace SQLite.Net2.Tests
@@ -15,6 +16,9 @@ namespace SQLite.Net2.Tests
         protected internal int shouldNotBeSet2 = -2;
         
         public string Role { get; set; }
+        
+        public int IgnoredProp1 { get; }
+        public int IgnoredProp2 { private get; set; }
 
         public void AssertNotSet()
         {
@@ -27,6 +31,25 @@ namespace SQLite.Net2.Tests
     [TestFixture]
     public class FieldSupportTest : BaseTest
     {
+        [Test]
+        public void FieldBeforePropertyOrdering()
+        {
+            string[] fieldNames = {
+                nameof(FieldTestModel.id),
+                nameof(FieldTestModel.name),
+                nameof(FieldTestModel.shouldNotBeSet0),
+                nameof(FieldTestModel.Role)
+            };
+            
+            var members = ReflectionService.GetPublicInstanceProperties(typeof(FieldTestModel)).ToList();
+            
+            Assert.That(members.Count, Is.EqualTo(fieldNames.Length));
+            for (var i = 0; i < fieldNames.Length; ++i)
+            {
+                Assert.That(members[i].Name, Is.EqualTo(fieldNames[i]));
+            }
+        }
+        
         [Test]
         public void CanCreateModelWithFields()
         {
