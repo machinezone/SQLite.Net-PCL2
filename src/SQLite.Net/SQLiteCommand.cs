@@ -172,9 +172,9 @@ namespace SQLite.Net2
                 while (sqlite.Step(stmt) == Result.Row)
                 {
                     var obj = isPrimitiveType ? null : _conn.Resolver.CreateObject(map.MappedType);
-                    if (obj is IColumnSerializer serializer)
+                    if (obj is IColumnDeserializer serializer)
                     {
-                        serializer.Deserialize(new SqliteColumnReader(sqlite, stmt));
+                        serializer.Deserialize(new SqliteColumnReader(sqlite, stmt, cols));
                     }
                     else
                     {
@@ -666,12 +666,15 @@ namespace SQLite.Net2
             private IDbStatement _stmt;
             private SqliteApi _sqlite;
                 
-            public SqliteColumnReader(SqliteApi sqlite, IDbStatement stmt)
+            public SqliteColumnReader(SqliteApi sqlite, IDbStatement stmt, TableMapping.Column[] columns)
             {
                 _sqlite = sqlite;
                 _stmt = stmt;
+                Columns = columns;
             }
 
+            public TableMapping.Column[] Columns { get; }
+            
             public int ColumnCount => _sqlite.ColumnCount(_stmt);
 
             public string GetColumnName(int col) => _sqlite.ColumnName16(_stmt, col);

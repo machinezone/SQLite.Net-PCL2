@@ -2,19 +2,27 @@ using NUnit.Framework;
 
 namespace SQLite.Net2.Tests
 {
-    public class TestColumnSerializerModel : IColumnSerializer
+    public class TestColumnDeserializerModel : IColumnDeserializer
     {
         [PrimaryKey]
-        public int Id { get; set; }
+        public int Id;
         
         public int ShouldBeSet { get; set; }
 
+        public (int x, int y) Position;
+        
         public int ShouldNotBeSet { get; set; }
         
         public void Deserialize(IColumnReader reader)
         {
+            // Fields
             Id = reader.ReadInt32(0);
-            ShouldBeSet = reader.ReadInt32(1);
+            Position = (
+                reader.ReadInt32(1),
+                reader.ReadInt32(2));
+
+            // Properties
+            ShouldBeSet = reader.ReadInt32(3);
         }
     }
     
@@ -25,18 +33,20 @@ namespace SQLite.Net2.Tests
         public void CanHandleCustomDeserialization()
         {
             var db = new SQLiteConnection(TestPath.CreateTemporaryDatabase());
-            db.CreateTable<TestColumnSerializerModel>();
+            db.CreateTable<TestColumnDeserializerModel>();
 
-            db.Insert(new TestColumnSerializerModel
+            db.Insert(new TestColumnDeserializerModel
             {
                 Id = 1,
                 ShouldBeSet = 2,
-                ShouldNotBeSet = 3
+                Position = (3, 4),
+                ShouldNotBeSet = 5
             });
 
-            var entry = db.Table<TestColumnSerializerModel>().First();
+            var entry = db.Table<TestColumnDeserializerModel>().First();
             
             Assert.That(entry.Id, Is.EqualTo(1));
+            Assert.That(entry.Position, Is.EqualTo((3, 4)));
             Assert.That(entry.ShouldBeSet, Is.EqualTo(2));
             Assert.That(entry.ShouldNotBeSet, Is.Not.EqualTo(3));
         }

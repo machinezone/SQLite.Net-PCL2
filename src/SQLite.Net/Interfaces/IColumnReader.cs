@@ -2,10 +2,10 @@ namespace SQLite.Net2
 {
     public interface IColumnReader
     {
+        public TableMapping.Column[] Columns { get; }
+        
         int ColumnCount { get; }
 
-        string GetColumnName(int col);
-        
         bool ReadBoolean(int col);
         
         byte ReadByte(int col);
@@ -24,10 +24,5 @@ namespace SQLite.Net2
         double ReadDouble(int col);
 
         string ReadString(int col);
-    }
-    
-    public interface IColumnSerializer
-    {
-        void Deserialize(IColumnReader reader);
     }
 }
