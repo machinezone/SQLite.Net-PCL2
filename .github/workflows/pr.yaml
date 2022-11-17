@@ -45,7 +45,7 @@ jobs:
   unit-tests:
     needs: changes
     if: ${{ needs.changes.outputs.cs == 'true' }}
-    uses: ./.github/workflows/ofan-tests.yaml
+    uses: ./.github/workflows/unit-tests.yaml
     secrets: inherit
 
   ####################################################
@@ -64,6 +64,5 @@ jobs:
     - name: Decide whether the needed jobs succeeded or failed
       uses: re-actors/alls-green@release/v1
       with:
-        allowed-failures: dump-sqlite #, unity-tests
-        allowed-skips: lint-meta-files, lint-workflow-files, ofan-tests
+        allowed-skips: lint-workflow-files, unit-tests
         jobs: ${{ toJSON(needs) }}
