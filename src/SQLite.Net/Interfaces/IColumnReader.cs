@@ -8,13 +8,13 @@ namespace SQLite.Net2
         /// <summary>
         /// Columns in this result.
         /// </summary>
-        public TableMapping.Column[] Columns { get; }
+        TableMapping.Column[] Columns { get; }
 
         /// <summary>
-        /// Count of the columns in this result.
+        /// Returns the name of the column at <see cref="col"/>.
         /// </summary>
-        int ColumnCount { get; }
-
+        string GetColumnName(int col);
+        
         /// <summary>
         /// Reads the integer value of the column <see cref="col"/> and checks if it equals 1.
         /// </summary>
