@@ -44,7 +44,7 @@ jobs:
 
   unit-tests:
     needs: changes
-    if: ${{ needs.changes.outputs.cs == 'true' }}
+    if: ${{ needs.changes.outputs.src == 'true' || true }}
     uses: ./.github/workflows/unit-tests.yaml
     secrets: inherit
 
