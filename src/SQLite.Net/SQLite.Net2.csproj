@@ -32,7 +32,7 @@
     <Description>sqlite-net2 allows applications to manage data in SQLite databases using Entity Framework like queries, but much lighter</Description>
     <Product>$(AssemblyName) ($(TargetFramework))</Product>
     <VersionSuffix></VersionSuffix>
-    <PackageVersion>$(Version)$(VersionSuffix)</PackageVersion>
+    <PackageVersion>2.0.6.1</PackageVersion>
     <Authors>Benjamin Mayrargue</Authors>
     <Owners>Benjamin Mayrargue</Owners>
     <NeutralLanguage>en</NeutralLanguage>
@@ -40,7 +40,7 @@
     <UseFullSemVerForNuGet>false</UseFullSemVerForNuGet>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageProjectUrl>https://github.com/softlion/SQLite.Net-PCL2</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/machinezone/SQLite.Net-PCL2</PackageProjectUrl>
     <PackageReleaseNotes>
       https://github.com/softlion/SQLite.Net-PCL/commits
     </PackageReleaseNotes>
