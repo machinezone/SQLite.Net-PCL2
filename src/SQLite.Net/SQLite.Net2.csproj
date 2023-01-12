@@ -31,8 +31,8 @@
     <Title>sqlite-net2 light ORM for SQLite</Title>
     <Description>sqlite-net2 allows applications to manage data in SQLite databases using Entity Framework like queries, but much lighter</Description>
     <Product>$(AssemblyName) ($(TargetFramework))</Product>
-    <VersionSuffix></VersionSuffix>
-    <PackageVersion>2.0.6.1</PackageVersion>
+    <VersionSuffix>.2</VersionSuffix>
+    <PackageVersion>$(Version)$(VersionSuffix)</PackageVersion>
     <Authors>Benjamin Mayrargue</Authors>
     <Owners>Benjamin Mayrargue</Owners>
     <NeutralLanguage>en</NeutralLanguage>
