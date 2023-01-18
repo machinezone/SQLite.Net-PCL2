@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using NUnit.Framework;
+using SQLite.Net2.Tests.Deps;
 
 namespace SQLite.Net2.Tests
 {
@@ -16,7 +17,7 @@ namespace SQLite.Net2.Tests
         public T Value;
     }
 
-    public class TestDerivedWithGenericBase : TestGenericBaseWithValue<(int userId, string userName)>
+    public class TestDerivedWithGenericBase : Model<(int userId, string userName)>
     {
     }
     
@@ -54,8 +55,8 @@ namespace SQLite.Net2.Tests
 
             var mapping3 = db.GetMapping<TestDerivedWithGenericBase>();
             Assert.That(mapping3.Columns.Length, Is.EqualTo(2));
-            Assert.That(mapping2.Columns[1].Name, Is.EqualTo($"{nameof(TestDerivedWithGenericBase.Value)}_{nameof(TestDerivedWithGenericBase.Value.userId)}"));
-            Assert.That(mapping2.Columns[2].Name, Is.EqualTo($"{nameof(TestDerivedWithGenericBase.Value)}_{nameof(TestDerivedWithGenericBase.Value.userName)}"));
+            Assert.That(mapping3.Columns[0].Name, Is.EqualTo($"{nameof(TestDerivedWithGenericBase.Key)}_{nameof(TestDerivedWithGenericBase.Key.userId)}"));
+            Assert.That(mapping3.Columns[1].Name, Is.EqualTo($"{nameof(TestDerivedWithGenericBase.Key)}_{nameof(TestDerivedWithGenericBase.Key.userName)}"));
         }
 
         [Test]
