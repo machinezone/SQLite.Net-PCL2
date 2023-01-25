@@ -151,9 +151,9 @@ namespace SQLite.Net2
 			return ColumnInformationProvider.Collation (p);
         }
 
-        internal static bool IsAutoInc(MemberInfo p)
+        internal static bool IsAutoInc(Type containedType, MemberInfo p, int tupleElementIndex)
         {
-			return ColumnInformationProvider.IsAutoInc (p);
+			return ColumnInformationProvider.IsAutoInc (containedType, p, tupleElementIndex);
         }
 
         internal static IEnumerable<IndexedAttribute> GetIndices(MemberInfo p)

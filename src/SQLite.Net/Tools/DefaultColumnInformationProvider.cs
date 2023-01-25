@@ -71,7 +71,7 @@ namespace SQLite.Net2
 			return string.Empty;
 		}
 
-		public bool IsAutoInc(MemberInfo m)
+		public bool IsAutoInc(Type containedType, MemberInfo m, int tupleElementIndex)
 		{
 			return m.GetCustomAttributes<AutoIncrementAttribute>().Any();
 		}
