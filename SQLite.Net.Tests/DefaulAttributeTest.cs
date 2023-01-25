@@ -114,7 +114,7 @@ namespace SQLite.Net2.Tests
 			{
 				return string.Empty;
 			}
-			public bool IsAutoInc(MemberInfo m)
+			public bool IsAutoInc(Type containedType, MemberInfo m, int tupleElementIndex)
 			{
 				return false;
 			}

@@ -193,7 +193,7 @@ namespace SQLite.Net2
                        (((createFlags & CreateFlags.ImplicitPK) == CreateFlags.ImplicitPK) &&
                         string.Compare(prop.Name, Orm.ImplicitPkName, StringComparison.OrdinalIgnoreCase) == 0);
 
-                var isAuto = Orm.IsAutoInc(prop) ||
+                var isAuto = Orm.IsAutoInc(containedType, prop, tupleElement) ||
                              (IsPK && ((createFlags & CreateFlags.AutoIncPK) == CreateFlags.AutoIncPK));
                 IsAutoGuid = isAuto && ColumnType == typeof(Guid);
                 IsAutoInc = isAuto && !IsAutoGuid;

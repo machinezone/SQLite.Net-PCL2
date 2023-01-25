@@ -8,7 +8,7 @@ namespace SQLite.Net2
 	{
 		bool IsPK(MemberInfo m);
 		string Collation(MemberInfo m);
-		bool IsAutoInc(MemberInfo m);
+		bool IsAutoInc(Type containedType, MemberInfo m, int tupleElementIndex);
 		int? MaxStringLength(MemberInfo p);
 		IEnumerable<IndexedAttribute> GetIndices(MemberInfo p);
 		object GetDefaultValue(MemberInfo p);
