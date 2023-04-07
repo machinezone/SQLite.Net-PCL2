@@ -72,7 +72,7 @@ namespace SQLite.Net2
                         {
                             throw new NotSupportedException("Nested tuple types are not supported.");
                         }
-                        
+
                         cols.Add(new Column(
                             type,
                             p,
@@ -166,7 +166,7 @@ namespace SQLite.Net2
         {
             private readonly MemberInfo _prop;
             private readonly IColumnInformationProvider _infoProvider;
-            
+
             public Column()
             {
             }
@@ -235,32 +235,7 @@ namespace SQLite.Net2
             /// <param name="val"></param>
             public void SetValue(object obj, object val)
             {
-                var propType = _infoProvider.GetMemberType(_prop);
-                var typeInfo = propType.GetTypeInfo();
-                object valueToSet;
-
-                if (typeInfo.IsGenericType && propType.GetGenericTypeDefinition() == typeof(Nullable<>))
-                {
-                    var typeCol = propType.GetTypeInfo().GenericTypeArguments;
-                    var nullableType = typeCol[0];
-                    var baseType = nullableType.GetTypeInfo().BaseType;
-                    if (baseType == typeof(Enum))
-                    {
-                        valueToSet = AsEnumValue(obj, nullableType, val);
-                    }
-                    else
-                    {
-                        valueToSet = val;
-                    }
-                }
-                else if (typeInfo.BaseType == typeof(Enum))
-                {
-                    valueToSet = AsEnumValue(obj, propType, val);
-                }
-                else
-                {
-                    valueToSet = val;
-                }
+                var valueToSet = ColumnType.BaseType == typeof(Enum) ? AsEnumValue(obj, ColumnType, val) : val;
 
                 // If we're a value tuple then we need to recreate the tuple with the new value and set that
                 // on the property.
@@ -289,14 +264,14 @@ namespace SQLite.Net2
 
             private object AsEnumValue(object obj, Type type, object? value)
             {
-                var result = value ?? 0;
-                return Enum.ToObject(type, result);
+                var nonNullValue = value ?? 0;
+                return value is string s ? Enum.Parse(type, s) : Enum.ToObject(type, nonNullValue);
             }
 
             public object GetValue(object obj)
             {
                 var result = _infoProvider.GetValue(_prop, obj);
-                
+
                 // If we're a value tuple then we need to get the nested value in the tuple.
                 if (TupleElement != -1 && result is ITuple tuple)
                 {
