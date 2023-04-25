@@ -300,13 +300,21 @@ namespace SQLite.Net2
         public byte[] Serialize(IDbHandle db, string schema)
         {
             var internalDbHandle = (DbHandle)db;
-            return raw.sqlite3_serialize(internalDbHandle.DbPtr, schema);
+            var bytes = raw.sqlite3_serialize(internalDbHandle.DbPtr, schema);
+            if (bytes == null)
+            {
+                throw new SQLiteException(Result.OK, $"error during serialize");
+            }
+            return bytes;
         }
 
-        public long Serialize(IDbHandle db, string schema, System.IO.Stream stream)
+        public void Serialize(IDbHandle db, string schema, System.IO.Stream stream)
         {
             var internalDbHandle = (DbHandle)db;
-            return raw.sqlite3_serialize(internalDbHandle.DbPtr, schema, stream);
+            if (raw.sqlite3_serialize(internalDbHandle.DbPtr, schema, stream) < 0)
+            {
+                throw new SQLiteException(Result.OK, $"error during serialize");
+            }
         }
 
         public void Deserialize(IDbHandle db, string schema, byte[] data)
@@ -315,7 +323,8 @@ namespace SQLite.Net2
             var r = (Result)raw.sqlite3_deserialize(internalDbHandle.DbPtr, schema, data);
             if (r != Result.OK)
             {
-                throw new SQLiteException(r, Errmsg16(internalDbHandle));
+                var errstr = raw.sqlite3_errstr((int)r).utf8_to_string();
+                throw new SQLiteException(r, $"error during deserialize: {errstr}");
             }
         }
 
@@ -325,7 +334,8 @@ namespace SQLite.Net2
             var r = (Result)raw.sqlite3_deserialize(internalDbHandle.DbPtr, schema, stream);
             if (r != Result.OK)
             {
-                throw new SQLiteException(r, Errmsg16(internalDbHandle));
+                var errstr = raw.sqlite3_errstr((int)r).utf8_to_string();
+                throw new SQLiteException(r, $"error during deserialize: {errstr}");
             }
         }
 

@@ -1809,9 +1809,9 @@ namespace SQLite.Net2
             return sqlite.Serialize(Handle, databaseName);
         }
 
-        public long Serialize(System.IO.Stream stream, string databaseName = "main")
+        public void Serialize(System.IO.Stream stream, string databaseName = "main")
         {
-            return sqlite.Serialize(Handle, databaseName, stream);
+            sqlite.Serialize(Handle, databaseName, stream);
         }
 
         public void Deserialize(byte[] dbData, string databaseName = "main")
