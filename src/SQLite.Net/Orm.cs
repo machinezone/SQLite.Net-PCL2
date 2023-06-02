@@ -130,9 +130,13 @@ namespace SQLite.Net2
             {
                 return "blob";
             }
-            if (clrType == typeof (Guid) || interfaces.Contains(typeof (ISerializable<Guid>)))
+            if (clrType == typeof(Guid) || interfaces.Contains(typeof(ISerializable<Guid>)))
             {
                 return "text";
+            }
+            if (ColumnInformationProvider.TryGetSqliteColumnType(clrType, out var result))
+            {
+                return result;
             }
             if (serializer != null && serializer.CanDeserialize(clrType))
             {
