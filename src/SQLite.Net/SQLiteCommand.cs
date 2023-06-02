@@ -424,7 +424,7 @@ namespace SQLite.Net2
                     {
                         string val = ((DateTime) value).ToUniversalTime().ToString(DateTimeFormat, CultureInfo.InvariantCulture);
                         isqLite3Api.BindText16(stmt, index, val, -1, NegativePointer);
-                                      }
+                    }
                 }
                 else if (value is DateTimeOffset)
                 {
@@ -442,6 +442,10 @@ namespace SQLite.Net2
                         string val = ((ISerializable<DateTime>) value).Serialize().ToUniversalTime().ToString(DateTimeFormat, CultureInfo.InvariantCulture);
                         isqLite3Api.BindText16(stmt, index, val, -1, NegativePointer);
                     }
+                }
+                else if (Orm.ColumnInformationProvider.TryBindParameter(isqLite3Api, stmt, index, value))
+                {
+                    return;
                 }
                 else if (value.GetType().GetTypeInfo().IsEnum)
                 {
@@ -478,7 +482,7 @@ namespace SQLite.Net2
 
         private object ReadCol(IDbStatement stmt, int index, ColType type, Type clrType)
         {
-            var interfaces = clrType.GetTypeInfo().ImplementedInterfaces.ToList();
+            var interfaces = clrType.GetTypeInfo().ImplementedInterfaces.ToHashSet();
 
             if (type == ColType.Null)
             {
@@ -629,6 +633,10 @@ namespace SQLite.Net2
             {
                 var value = (sbyte) sqlite.ColumnInt(stmt, index);
                 return _conn.Resolver.CreateObject(clrType, new object[] {value});
+            }
+            if (_conn.ColumnInformationProvider.TryReadCol(sqlite, stmt, index, clrType, out var obj))
+            {
+                return obj!;
             }
             if (clrType == typeof (byte[]))
             {
