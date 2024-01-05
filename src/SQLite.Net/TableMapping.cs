@@ -189,18 +189,18 @@ namespace SQLite.Net2
                 ColumnType = Nullable.GetUnderlyingType(columnType) ?? columnType;
                 Collation = Orm.Collation(prop);
 
-                IsPK = Orm.IsPK(prop) ||
+                IsPK = _infoProvider.IsPK(prop) ||
                        (((createFlags & CreateFlags.ImplicitPK) == CreateFlags.ImplicitPK) &&
                         string.Compare(prop.Name, Orm.ImplicitPkName, StringComparison.OrdinalIgnoreCase) == 0);
 
-                var isAuto = Orm.IsAutoInc(containedType, prop, tupleElement) ||
+                var isAuto = _infoProvider.IsAutoInc(containedType, prop, tupleElement) ||
                              (IsPK && ((createFlags & CreateFlags.AutoIncPK) == CreateFlags.AutoIncPK));
                 IsAutoGuid = isAuto && ColumnType == typeof(Guid);
                 IsAutoInc = isAuto && !IsAutoGuid;
 
-                DefaultValue = Orm.GetDefaultValue(prop);
+                DefaultValue = _infoProvider.GetDefaultValue(prop);
 
-                Indices = Orm.GetIndices(prop);
+                Indices = _infoProvider.GetIndices(prop);
                 if (!Indices.Any()
                     && !IsPK
                     && ((createFlags & CreateFlags.ImplicitIndex) == CreateFlags.ImplicitIndex)
@@ -209,8 +209,8 @@ namespace SQLite.Net2
                     Indices = new[] { new IndexedAttribute() };
                 }
 
-                IsNullable = !(IsPK || Orm.IsMarkedNotNull(prop));
-                MaxStringLength = Orm.MaxStringLength(prop);
+                IsNullable = !(IsPK || _infoProvider.IsMarkedNotNull(prop));
+                MaxStringLength = _infoProvider.MaxStringLength(prop);
                 TupleElement = tupleElement;
             }
 

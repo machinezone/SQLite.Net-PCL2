@@ -172,35 +172,42 @@ namespace SQLite.Net2
                 while (sqlite.Step(stmt) == Result.Row)
                 {
                     var obj = isPrimitiveType ? null : _conn.Resolver.CreateObject(map.MappedType);
-                    for (var i = 0; i < cols.Length; i++)
+                    if (_conn.ColumnInformationProvider.TryReadObject(obj, sqlite, stmt))
                     {
-                        ColType colType;
-                        object val;
-
-                        //Support of primitive types
-                        if (isPrimitiveType)
+                        yield return (T)obj;
+                    }
+                    else
+                    {
+                        for (var i = 0; i < cols.Length; i++)
                         {
-                            //Assert(cols.Length == 1)
+                            ColType colType;
+                            object val;
+
+                            //Support of primitive types
+                            if (isPrimitiveType)
+                            {
+                                //Assert(cols.Length == 1)
+                                colType = sqlite.ColumnType(stmt, i);
+                                val = ReadCol(stmt, i, colType, cols[i].ColumnType);
+                                yield return (T)Convert.ChangeType(val, type, CultureInfo.CurrentCulture);
+                                break;
+                            }
+
+                            if (cols[i] == null)
+                            {
+                                continue;
+                            }
+
                             colType = sqlite.ColumnType(stmt, i);
                             val = ReadCol(stmt, i, colType, cols[i].ColumnType);
-                            yield return (T)Convert.ChangeType(val, type, CultureInfo.CurrentCulture);
-                            break;
+                            cols[i].SetValue(obj, val);
                         }
 
-                        if (cols[i] == null)
+                        if (!isPrimitiveType)
                         {
-                            continue;
+                            OnInstanceCreated(obj);
+                            yield return (T)obj;
                         }
-
-                        colType = sqlite.ColumnType(stmt, i);
-                        val = ReadCol(stmt, i, colType, cols[i].ColumnType);
-                        cols[i].SetValue(obj, val);
-                    }
-
-                    if (!isPrimitiveType)
-                    {
-                        OnInstanceCreated(obj);
-                        yield return (T) obj;
                     }
                 }
             }
