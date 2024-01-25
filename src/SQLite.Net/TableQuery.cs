@@ -200,6 +200,31 @@ namespace SQLite.Net2
             return AddOrderBy(orderExpr, false);
         }
 
+        /// <summary>
+        /// Order the Query based on the Primary Key Column(s)
+        /// </summary>
+        public TableQuery<T> OrderByKey()
+        {
+            var pks = Table.PKs;
+            return AddOrdering(pks.Select(pk => new Ordering()
+            {
+                ColumnName = pk.Name,
+                Ascending = true,
+            }).ToArray());
+        }
+
+        /// <summary>
+        /// Order the Query based on the Primary Key Column(s)
+        /// </summary>
+        public TableQuery<T> OrderByKeyDescending()
+        {
+            var pks = Table.PKs;
+            return AddOrdering(pks.Select(pk => new Ordering()
+            {
+                ColumnName = pk.Name,
+                Ascending = false,
+            }).ToArray());
+        }
 
         public TableQuery<T> ThenBy<TValue>(Expression<Func<T, TValue>> orderExpr)
         {
@@ -212,6 +237,21 @@ namespace SQLite.Net2
             return AddOrderBy(orderExpr, false);
         }
 
+        private TableQuery<T> AddOrdering(params Ordering[] orderings)
+        {
+            var q = Clone<T>();
+            if (q._orderBys == null)
+            {
+                q._orderBys = new List<Ordering>();
+            }
+            foreach (var ordering in orderings)
+            {
+                q._orderBys.Add(ordering);   
+            }
+            return q;
+        }
+
+        
         private TableQuery<T> AddOrderBy<TValue>( Expression<Func<T, TValue>> orderExpr, bool asc)
         {
             if (orderExpr == null)
@@ -241,17 +281,11 @@ namespace SQLite.Net2
                 throw new NotSupportedException("Order By does not support: " + orderExpr);
             }
 
-            var q = Clone<T>();
-            if (q._orderBys == null)
-            {
-                q._orderBys = new List<Ordering>();
-            }
-            q._orderBys.Add(new Ordering
+            return AddOrdering(new Ordering
             {
                 ColumnName = GetColumnName(mem),
                 Ascending = asc
             });
-            return q;
         }
 
         private void AddWhere( Expression pred)
