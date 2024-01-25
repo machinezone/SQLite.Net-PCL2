@@ -16,14 +16,47 @@ namespace SQLite.Net2.Tests
         uint TotalSales { get; set; }
     }
 
-    public class Product : IProduct
+    public class Product : BaseProduct, IProduct
     {
         [AutoIncrement, PrimaryKey]
         public int Id { get; set; }
 
+    }
+
+    public class KeyedProduct : BaseProduct
+    {
+        [PrimaryKey] 
+        public (string, int) Id { get; set; }
+
+        public override bool Equals(object? obj)
+        {
+            var o = obj as KeyedProduct;
+            if (o == null)
+            {
+                return false;
+            }
+            return base.Equals(obj) && Id == o.Id;
+        }
+
+    }
+
+    
+    public class BaseProduct
+    {
         public string Name { get; set; }
         public decimal Price { get; set; }
         public uint TotalSales { get; set; }
+       
+        public override bool Equals(object? obj)
+        {
+            var o = obj as BaseProduct;
+            if (o == null)
+            {
+                return false;
+            }
+        
+            return o.Name == Name && o.Price == Price && o.TotalSales == TotalSales;
+        }
     }
 
     [Table("Order")]

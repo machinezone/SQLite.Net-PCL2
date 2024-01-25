@@ -13,6 +13,7 @@ namespace SQLite.Net2.Tests
         {
             var db = new TestDb();
             db.CreateTable<Product>();
+            db.CreateTable<KeyedProduct>(); 
             db.CreateTable<Order>();
             db.CreateTable<OrderLine>();
             db.CreateTable<OrderHistory>();
@@ -143,6 +144,52 @@ namespace SQLite.Net2.Tests
             Assert.AreEqual(3, db.Table<Issue96_A>().Where(p => p.ClassB == null).Count());
         }
 
+        [Test]
+        public void OrderByKey()
+        {
+            TestDb db = CreateDb();
+
+            var products = new List<KeyedProduct>()
+            {
+                new ()
+                {
+                    Id = ("FOO", 1),
+                    Name = "A",
+                    TotalSales = 1,
+                },
+                new()
+                {
+                    Id = ("FOO", 2),
+                    Name = "C",
+                    TotalSales = 5,
+                },
+                new()
+                {
+                    Id = ("FOO",3),
+                    Name = "D",
+                    TotalSales = 400,
+                },
+                new()
+                {
+                    Id = ("FOO", 10),
+                    Name = "B",
+                    TotalSales = 100,
+                },
+            
+            };
+            foreach (var product in products)
+            {
+                db.Insert(product);
+            }
+
+            List<KeyedProduct> asc = (from p in db.Table<KeyedProduct>().OrderByKey() select p).ToList();
+            Assert.That(products, Is.EquivalentTo(asc));
+
+            List<KeyedProduct> desc = (from p in db.Table<KeyedProduct>().OrderByKeyDescending() select p).ToList();
+            products.Reverse();
+            Assert.That(products, Is.EquivalentTo(desc));
+        }
+        
         [Test]
         public void OrderByCast()
         {
