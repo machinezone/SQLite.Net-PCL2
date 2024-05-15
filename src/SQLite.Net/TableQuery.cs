@@ -44,6 +44,7 @@ namespace SQLite.Net2
         private int? _offset;
         private List<Ordering> _orderBys;
         private Expression _where;
+        private string? _lastQueryExecuted;
 
         private TableQuery(SQLiteConnection conn, TableMapping table)
         {
@@ -64,6 +65,7 @@ namespace SQLite.Net2
 
         public TableMapping Table { get; private set; }
 
+        public string? LastQueryExecuted => _lastQueryExecuted;
 
         public IEnumerator<T> GetEnumerator()
         {
@@ -161,6 +163,7 @@ namespace SQLite.Net2
 				cmdText += " where " + w.CommandText;
             var command = Connection.CreateCommand(cmdText, args.ToArray());
 
+            _lastQueryExecuted = cmdText;
             var result = command.ExecuteNonQuery();
 				return result;
 		}
@@ -355,6 +358,8 @@ namespace SQLite.Net2
                 }
                 cmdText.Append(" offset ").Append(_offset.Value);
             }
+            
+            _lastQueryExecuted = cmdText.ToString();
             return Connection.CreateCommand(cmdText.ToString(), args.ToArray());
         }
 
