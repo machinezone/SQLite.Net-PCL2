@@ -29,6 +29,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace SQLite.Net2
 {
@@ -44,6 +45,7 @@ namespace SQLite.Net2
         private int? _offset;
         private List<Ordering> _orderBys;
         private Expression _where;
+        private string? _lastQueryExecuted;
 
         private TableQuery(SQLiteConnection conn, TableMapping table)
         {
@@ -64,6 +66,7 @@ namespace SQLite.Net2
 
         public TableMapping Table { get; private set; }
 
+        public string? LastQueryExecuted => _lastQueryExecuted;
 
         public IEnumerator<T> GetEnumerator()
         {
@@ -161,6 +164,7 @@ namespace SQLite.Net2
 				cmdText += " where " + w.CommandText;
             var command = Connection.CreateCommand(cmdText, args.ToArray());
 
+            _lastQueryExecuted = cmdText;
             var result = command.ExecuteNonQuery();
 				return result;
 		}
@@ -355,6 +359,8 @@ namespace SQLite.Net2
                 }
                 cmdText.Append(" offset ").Append(_offset.Value);
             }
+            
+            _lastQueryExecuted = cmdText.ToString();
             return Connection.CreateCommand(cmdText.ToString(), args.ToArray());
         }
 
@@ -535,6 +541,10 @@ namespace SQLite.Net2
                 else if (call.Method.Name == "Replace" && args.Length == 2)
                 {
                     sqlCall.AppendFormat("(replace({0}, {1}, {2}))", obj.CommandText, args[0].CommandText, args[1].CommandText);
+                }
+                else if (call.Method.Name == nameof(TableQueryExtensions.IsMatch) && args.Length == 2)
+                {
+                    sqlCall.AppendFormat("{0} REGEXP {1}", args[0].CommandText, args[1].CommandText);
                 }
                 else
                 {
@@ -823,6 +833,19 @@ namespace SQLite.Net2
             public string CommandText { get; set; }
 
             public object Value { get; set; }
+        }
+    }
+
+    public static class TableQueryExtensions
+    {
+        public static bool IsMatch(this ISerializable<string> a, string b)
+        {
+            return IsMatch(a.Serialize(), b);
+        }
+        
+        public static bool IsMatch(this string a, string b)
+        {
+            return Regex.IsMatch(a, b);
         }
     }
 }

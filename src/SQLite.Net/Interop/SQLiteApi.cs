@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 using SQLitePCL;
 
 namespace SQLite.Net2
@@ -12,6 +13,23 @@ namespace SQLite.Net2
             var r = raw.sqlite3_open_v2(filename, out var db3, flags, zvfs);
             db = new DbHandle(db3);
             return (Result)r;
+        }
+
+        public int BindRegexpFunction(IDbHandle db)
+        {
+            void RegexMatch(
+                sqlite3_context ctx,
+                object user_data,
+                sqlite3_value[] args)
+            {
+                var pattern = raw.sqlite3_value_text(args[0]).utf8_to_string();
+                var input = raw.sqlite3_value_text(args[1]).utf8_to_string();
+                var r = Regex.IsMatch(input, pattern);
+                raw.sqlite3_result_int(ctx, r ? 1 : 0);
+            }
+
+            var handle = (DbHandle)db;
+            return raw.sqlite3_create_function(handle.DbPtr, "REGEXP", 2, null, RegexMatch);
         }
 
         public ExtendedResult ExtendedErrCode(IDbHandle db)
