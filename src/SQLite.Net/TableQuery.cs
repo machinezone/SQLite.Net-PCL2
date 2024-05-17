@@ -29,6 +29,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace SQLite.Net2
 {
@@ -541,6 +542,10 @@ namespace SQLite.Net2
                 {
                     sqlCall.AppendFormat("(replace({0}, {1}, {2}))", obj.CommandText, args[0].CommandText, args[1].CommandText);
                 }
+                else if (call.Method.Name == nameof(TableQueryExtensions.IsMatch) && args.Length == 2)
+                {
+                    sqlCall.AppendFormat("{0} REGEXP {1}", args[0].CommandText, args[1].CommandText);
+                }
                 else
                 {
                     sqlCall.Append(call.Method.Name.ToLower()).Append("(").Append(String.Join(",", args.Select(a => a.CommandText).ToArray())).Append(")");
@@ -828,6 +833,19 @@ namespace SQLite.Net2
             public string CommandText { get; set; }
 
             public object Value { get; set; }
+        }
+    }
+
+    public static class TableQueryExtensions
+    {
+        public static bool IsMatch(this ISerializable<string> a, string b)
+        {
+            return IsMatch(a.Serialize(), b);
+        }
+        
+        public static bool IsMatch(this string a, string b)
+        {
+            return Regex.IsMatch(a, b);
         }
     }
 }

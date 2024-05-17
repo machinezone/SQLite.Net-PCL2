@@ -63,5 +63,15 @@ namespace SQLite.Net2.Tests
             List<Product> bs = db.Table<Product>().Where(x => x.Name.StartsWith("B")).ToList();
             Assert.AreEqual(1, bs.Count);
         }
+
+        [Test]
+        public void RegexTest()
+        {
+            var fs = db.Table<Product>().Where(x => x.Name.IsMatch("^F.*")).ToList();
+            Assert.AreEqual(2, fs.Count);
+            
+            var bs = db.Table<Product>().Where(x => x.Name.IsMatch(".*o$")).ToList();
+            Assert.AreEqual(1, bs.Count);
+        }
     }
 }

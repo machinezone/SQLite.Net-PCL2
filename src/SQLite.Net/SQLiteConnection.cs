@@ -145,6 +145,8 @@ namespace SQLite.Net2
             if (r != Result.OK)
                 throw new SQLiteException(r, $"Could not open database file: {DatabasePath} ({r})");
 
+            sqlite.BindRegexpFunction(handle);
+
             Handle = handle ?? throw new NullReferenceException("Database handle is null");
             _open = true;
             databaseOpenFlags = openFlags;
