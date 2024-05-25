@@ -23,6 +23,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -1806,24 +1807,64 @@ namespace SQLite.Net2
 
         #region Serialize
 
+        /// <summary>
+        /// Get the serialization of the database.
+        /// (This is the same sequence of bytes as would be written to a .db file.)
+        /// </summary>
         public byte[] Serialize(string databaseName = "main")
         {
-            return sqlite.Serialize(Handle, databaseName);
+            return sqlite.Serialize(Handle, databaseName, (bytesPtr, size) =>
+            {
+                unsafe
+                {
+                    return new ReadOnlySpan<byte>(bytesPtr.ToPointer(), checked((int)size)).ToArray();
+                }
+            });
         }
 
-        public long Serialize(System.IO.Stream stream, string databaseName = "main")
+        /// <summary>
+        /// Write the serialization of the database to the given stream.
+        /// (This is the same sequence of bytes as would be written to a .db file.)
+        /// </summary>
+        /// <returns>The number of bytes written to the stream.</returns>
+        public long Serialize(Stream stream, string databaseName = "main")
         {
-            return sqlite.Serialize(Handle, databaseName, stream);
+            return sqlite.Serialize(Handle, databaseName, (bytesPtr, size) =>
+            {
+                unsafe
+                {
+                    new UnmanagedMemoryStream((byte*)bytesPtr, size).CopyTo(stream);
+                }
+                return size;
+            });
         }
 
+        /// <summary>
+        /// Load the serialization (.db file contents) of a database from the given byte array.
+        /// </summary>
         public void Deserialize(byte[] dbData, string databaseName = "main")
         {
-            sqlite.Deserialize(Handle, databaseName, dbData);
+            sqlite.Deserialize(Handle, databaseName, dbData.Length, (bytesPtr, size) =>
+            {
+                unsafe
+                {
+                    dbData.CopyTo(new Span<byte>(bytesPtr.ToPointer(), checked((int)size)));
+                }
+            });
         }
 
-        public void Deserialize(System.IO.Stream stream, string databaseName = "main")
+        /// <summary>
+        /// Load the serialization (.db file contents) of a database from the given stream.
+        /// </summary>
+        public void Deserialize(Stream stream, string databaseName = "main")
         {
-            sqlite.Deserialize(Handle, databaseName, stream);
+            sqlite.Deserialize(Handle, databaseName, stream.Length, (bytesPtr, size) =>
+            {
+                unsafe
+                {
+                    stream.CopyTo(new UnmanagedMemoryStream((byte*)bytesPtr, size, size, FileAccess.Write));
+                }
+            });
         }
 
         #endregion

@@ -315,34 +315,63 @@ namespace SQLite.Net2
 
         #region Serialize
 
-        public byte[] Serialize(IDbHandle db, string schema)
+        /// <summary>
+        /// Serialize the database, passing the memory to the given function to be copied as appropriate.
+        /// <see cref="copy"/> will be called with a pointer to the serialized data and its size, and its
+        /// return value or any exceptions will be passed through.  The serialized memory is only valid
+        /// during the callback, and will be freed immediately after regardless of success or failure.
+        /// </summary>
+        public T Serialize<T>(IDbHandle db, string schema, Func<IntPtr, long, T> copy)
         {
             var internalDbHandle = (DbHandle)db;
-            return raw.sqlite3_serialize(internalDbHandle.DbPtr, schema);
-        }
 
-        public long Serialize(IDbHandle db, string schema, System.IO.Stream stream)
-        {
-            var internalDbHandle = (DbHandle)db;
-            return raw.sqlite3_serialize(internalDbHandle.DbPtr, schema, stream);
-        }
-
-        public void Deserialize(IDbHandle db, string schema, byte[] data)
-        {
-            var internalDbHandle = (DbHandle)db;
-            var r = (Result)raw.sqlite3_deserialize(internalDbHandle.DbPtr, schema, data);
-            if (r != Result.OK)
+            var bytesPtr = raw.sqlite3_serialize(internalDbHandle.DbPtr, schema, out var size, 0);
+            if (bytesPtr == IntPtr.Zero)
             {
-                throw new SQLiteException(r, Errmsg16(internalDbHandle));
+                throw new SQLiteException(Result.NoMem, Errmsg16(internalDbHandle));
+            }
+
+            try
+            {
+                return copy(bytesPtr, size);
+            }
+            finally
+            {
+                raw.sqlite3_free(bytesPtr);
             }
         }
 
-        public void Deserialize(IDbHandle db, string schema, System.IO.Stream stream)
+        /// <summary>
+        /// Deserialize a database. A buffer of the requested <see cref="size"/> will be allocated and
+        /// passed with the size to the given function to be filled as appropriate. Any exceptions will
+        /// be passed through. The buffer is only valid during the callback, and will be freed or passed
+        /// to sqlite immediately after depending on success.
+        /// </summary>
+        public void Deserialize(IDbHandle db, string schema, long size, Action<IntPtr, long> copy)
         {
             var internalDbHandle = (DbHandle)db;
-            var r = (Result)raw.sqlite3_deserialize(internalDbHandle.DbPtr, schema, stream);
+
+            var bytesPtr = raw.sqlite3_malloc64(size);
+            if (bytesPtr == IntPtr.Zero)
+            {
+                throw new SQLiteException(Result.NoMem, Errmsg16(internalDbHandle));
+            }
+
+            try
+            {
+                copy(bytesPtr, size);
+            }
+            catch
+            {
+                raw.sqlite3_free(bytesPtr);
+                throw;
+            }
+
+            const int flags = raw.SQLITE_DESERIALIZE_RESIZEABLE | raw.SQLITE_DESERIALIZE_FREEONCLOSE;
+            var r = (Result)raw.sqlite3_deserialize(internalDbHandle.DbPtr, schema, bytesPtr, size, size, flags);
             if (r != Result.OK)
             {
+                // note: sqlite will free the buffer on error, thanks to SQLITE_DESERIALIZE_FREEONCLOSE
                 throw new SQLiteException(r, Errmsg16(internalDbHandle));
             }
         }
