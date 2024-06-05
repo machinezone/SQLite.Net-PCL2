@@ -20,11 +20,16 @@
 // THE SOFTWARE.
 
 using System;
+using SQLitePCL;
 
 namespace SQLite.Net2
 {
     public interface IDbHandle { }
-    public interface IDbStatement { }
+
+    public interface IDbStatement
+    {
+        public sqlite3_stmt StmtPtr { get; }
+    }
     public interface IDbBackupHandle { }
 
     public interface ISQLiteApi

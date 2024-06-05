@@ -169,15 +169,17 @@ namespace SQLite.Net2
                     }
                 }
 
+                var deserializer = _conn.ColumnInformationProvider.GetDeserialize(sqlite, stmt, map.MappedType, cols);
                 while (sqlite.Step(stmt) == Result.Row)
                 {
-                    var obj = isPrimitiveType ? null : _conn.Resolver.CreateObject(map.MappedType);
-                    if (_conn.ColumnInformationProvider.TryReadObject(obj, sqlite, stmt))
+                    if (deserializer != null)
                     {
-                        yield return (T)obj;
+                        yield return (T)deserializer.Deserialize();
                     }
                     else
                     {
+                        var obj = isPrimitiveType ? null : Activator.CreateInstance(map.MappedType);
+
                         for (var i = 0; i < cols.Length; i++)
                         {
                             ColType colType;
