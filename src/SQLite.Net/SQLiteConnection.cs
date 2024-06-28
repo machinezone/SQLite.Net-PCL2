@@ -335,12 +335,8 @@ namespace SQLite.Net2
             sbQuery.Append(")");
             var count = Execute(sbQuery.ToString());
 
-            if (count == 0)
-            {
-                //Possible bug: This always seems to return 0?
-                // Table already exists, migrate it
-                MigrateTable(map);
-            }
+            // add columns if necessary
+            MigrateTable(map);
 
             var indexes = new Dictionary<string, IndexInfo>();
             foreach (var c in mapColumns)
