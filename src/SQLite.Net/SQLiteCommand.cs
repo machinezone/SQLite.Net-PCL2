@@ -171,13 +171,14 @@ namespace SQLite.Net2
 
                 while (sqlite.Step(stmt) == Result.Row)
                 {
-                    var obj = isPrimitiveType ? null : _conn.Resolver.CreateObject(map.MappedType);
-                    if (_conn.ColumnInformationProvider.TryReadObject(obj, sqlite, stmt))
+                    var obj = _conn.ColumnInformationProvider.TryReadObject(map, sqlite, stmt);
+                    if (obj != null)
                     {
                         yield return (T)obj;
                     }
                     else
                     {
+                        obj = isPrimitiveType ? null : _conn.Resolver.CreateObject(map.MappedType);
                         for (var i = 0; i < cols.Length; i++)
                         {
                             ColType colType;
@@ -443,10 +444,6 @@ namespace SQLite.Net2
                         isqLite3Api.BindText16(stmt, index, val, -1, NegativePointer);
                     }
                 }
-                else if (Orm.ColumnInformationProvider.TryBindParameter(isqLite3Api, stmt, index, value))
-                {
-                    return;
-                }
                 else if (value.GetType().GetTypeInfo().IsEnum)
                 {
                     isqLite3Api.BindInt(stmt, index, Convert.ToInt32(value));
@@ -633,10 +630,6 @@ namespace SQLite.Net2
             {
                 var value = (sbyte) sqlite.ColumnInt(stmt, index);
                 return _conn.Resolver.CreateObject(clrType, new object[] {value});
-            }
-            if (_conn.ColumnInformationProvider.TryReadCol(sqlite, stmt, index, clrType, out var obj))
-            {
-                return obj!;
             }
             if (clrType == typeof (byte[]))
             {
