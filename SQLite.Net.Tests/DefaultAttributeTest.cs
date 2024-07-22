@@ -96,23 +96,6 @@ namespace SQLite.Net2.Tests
 				};
 			}
 
-			public bool TryBindParameter(ISQLiteApi isqLite3Api, IDbStatement stmt, int index, object value)
-			{
-				return false;
-			}
-
-			public bool TryGetSqliteColumnType(Type type, out string sqliteType)
-			{
-				sqliteType = string.Empty;
-				return false;
-			}
-
-			public bool TryReadCol(ISQLiteApi isqLite3Api, IDbStatement stmt, int index, Type clrType, out object? value)
-			{
-				value = null;
-				return false;
-			}
-
 			public bool IsIgnored(MemberInfo p)
 			{
 				return false;

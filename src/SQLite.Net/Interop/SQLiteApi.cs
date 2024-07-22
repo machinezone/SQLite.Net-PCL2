@@ -395,6 +395,8 @@ namespace SQLite.Net2
 
         private struct DbStatement : IDbStatement
         {
+            public object Handle => StmtPtr; 
+            
             public sqlite3_stmt StmtPtr { get; private set; }
 
             public DbStatement(sqlite3_stmt stmtPtr)

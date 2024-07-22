@@ -134,10 +134,6 @@ namespace SQLite.Net2
             {
                 return "text";
             }
-            if (ColumnInformationProvider.TryGetSqliteColumnType(clrType, out var result))
-            {
-                return result;
-            }
             if (serializer != null && serializer.CanDeserialize(clrType))
             {
                 return "blob";

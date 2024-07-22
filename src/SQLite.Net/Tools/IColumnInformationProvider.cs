@@ -17,13 +17,15 @@ namespace SQLite.Net2
 		string GetColumnName(Type containedType, MemberInfo p, int tupleElementIndex);
 		Type GetMemberType(MemberInfo m);
 		object GetValue(MemberInfo m, object obj);
+
 		/// <summary>
-		/// Attempts to read an object from <see cref="stmt"/>. Returns true if successful.
+		/// Attempts to read an object from <see cref="stmt"/>. Returns non-null if the object is supported.
 		/// </summary>
-		bool TryReadObject(object obj, ISQLiteApi sqLiteApi, IDbStatement stmt) => false;
-		bool TryBindParameter(ISQLiteApi isqLite3Api, IDbStatement stmt, int index, object value);
-		bool TryGetSqliteColumnType(Type type, out string sqliteType);
-		bool TryReadCol(ISQLiteApi isqLite3Api, IDbStatement stmt, int index, Type clrType, out object? value);
+		/// <param name="mapping">Table mapping for the type to return</param>
+		/// <param name="sqLiteApi">SQLite API</param>
+		/// <param name="stmt">Statement row to read from.</param>
+		/// <returns>An object or null if the table/type is not supported.</returns>
+		object? TryReadObject(TableMapping mapping, ISQLiteApi sqLiteApi, IDbStatement stmt) => null;
 	}
 }
 
