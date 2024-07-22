@@ -24,7 +24,11 @@ using System;
 namespace SQLite.Net2
 {
     public interface IDbHandle { }
-    public interface IDbStatement { }
+
+    public interface IDbStatement
+    {
+        object Handle { get; }
+    }
     public interface IDbBackupHandle { }
 
     public interface ISQLiteApi

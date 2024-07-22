@@ -171,7 +171,10 @@ namespace SQLite.Net2
 
                 while (sqlite.Step(stmt) == Result.Row)
                 {
-                    var obj = _conn.ColumnInformationProvider.TryReadObject(map, sqlite, stmt);
+                    var obj = isPrimitiveType
+                        ? null
+                        : _conn.ColumnInformationProvider.TryReadObject(map, sqlite, stmt);
+
                     if (obj != null)
                     {
                         yield return (T)obj;
